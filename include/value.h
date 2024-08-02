@@ -15,6 +15,7 @@ public:
         SET
     };
 
+    Value() = default;
     Value(const std::string& str) : type(Type::STRING), value{str} {}
     Value(const std::deque<std::string>& lst) : type(Type::LIST), value{lst} {}
     Value(const std::unordered_set<std::string>& set) : type(Type::SET), value{set} {}
@@ -25,21 +26,21 @@ public:
     bool isList() const { return type == Type::LIST; }
     bool isSet() const { return type == Type::SET; }
 
-    std::string getString() const {
+    std::string& getString() {
         if (type == Type::STRING) {
             return std::get<std::string>(value);
         }
         throw std::bad_variant_access();
     }
 
-    std::deque<std::string> getList() const {
+    std::deque<std::string>& getList() {
         if (type == Type::LIST) {
             return std::get<std::deque<std::string>>(value);
         }
         throw std::bad_variant_access();
     }
 
-    std::unordered_set<std::string> getSet() const {
+    std::unordered_set<std::string>& getSet() {
         if (type == Type::SET) {
             return std::get<std::unordered_set<std::string>>(value);
         }

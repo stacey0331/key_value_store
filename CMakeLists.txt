@@ -18,7 +18,6 @@ add_library(key_value_store_lib
 
 target_include_directories(key_value_store_lib PRIVATE include)
 
-
 enable_testing() # this generates test config file
 
 add_executable(
