@@ -15,30 +15,37 @@ class KeyValueStoreTest : public ::testing::Test {
 };
 
 TEST_F(KeyValueStoreTest, SetAndGet) {
-    store->set("key1", "value1");
-    EXPECT_EQ(store->get("key1"), "value1");
+    store->set("test_key", "test_value");
+    EXPECT_EQ(store->get("test_key"), "test_value");
 }
 
 TEST_F(KeyValueStoreTest, SetDelGet) {
-    store->set("key2", "value2");
-    store->del("key2");
-    EXPECT_FALSE(store->get("key2").has_value());
+    store->set("test_key", "test_value");
+    store->del("test_key");
+    EXPECT_FALSE(store->get("test_key").has_value());
 }
 
 TEST_F(KeyValueStoreTest, LeftPushTwiceLen) {
-    store->lPush("key3", "value3.0");
-    store->lPush("key3", "value3.1");
-    EXPECT_EQ(store->lLen("key3"), 2);
+    store->lPush("test_list", "item1");
+    store->lPush("test_list", "item2");
+    EXPECT_EQ(store->lLen("test_list"), 2);
 }
 
 TEST_F(KeyValueStoreTest, LeftPushLRange) {
-    store->lPush("key3", "value3.0");
-    EXPECT_EQ(store->lRange("key3", 0, 0), (std::deque<std::string>{"value3.0"}));
+    store->lPush("test_list", "item1");
+    EXPECT_EQ(store->lRange("test_list", 0, 0), (std::deque<std::string>{"item1"}));
 }
 
 TEST_F(KeyValueStoreTest, LeftPushTwiceRightPopLRange) {
-    store->lPush("key3", "value3.0");
-    store->lPush("key3", "value3.1");
-    store->rPop("key3");
-    EXPECT_EQ(store->lRange("key3", 0, 0), (std::deque<std::string>{"value3.1"}));
+    store->lPush("test_list", "item1");
+    store->lPush("test_list", "item2");
+    store->rPop("test_list");
+    EXPECT_EQ(store->lRange("test_list", 0, 0), (std::deque<std::string>{"item2"}));
+}
+
+TEST_F(KeyValueStoreTest, RightPushTwiceLeftPopLRange) {
+    store->rPush("test_list", "item1");
+    store->rPush("test_list", "item2");
+    store->lPop("test_list");
+    EXPECT_EQ(store->lRange("test_list", 0, 0), (std::deque<std::string>{"item2"}));
 }
