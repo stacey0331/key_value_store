@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <optional>
+#include <stdexcept>
 #include "value.h"
 
 class KeyValueStore {
@@ -32,6 +33,11 @@ class KeyValueStore {
     private:
         std::unordered_map<std::string, Value> store;
         size_t capacity;
+};
+
+class TypeMismatchError : public std::runtime_error {
+    public:
+        explicit TypeMismatchError(const std::string& msg);
 };
 
 #endif

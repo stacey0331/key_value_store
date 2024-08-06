@@ -49,3 +49,11 @@ TEST_F(KeyValueStoreTest, RightPushTwiceLeftPopLRange) {
     store->lPop("test_list");
     EXPECT_EQ(store->lRange("test_list", 0, 0), (std::deque<std::string>{"item2"}));
 }
+
+TEST_F(KeyValueStoreTest, RightLeftPushLRange) {
+    store->rPush("test_list", "item1");
+    store->rPush("test_list", "item2");
+    store->lPush("test_list", "item0");
+    store->rPush("test_list", "item3");
+    EXPECT_EQ(store->lRange("test_list", 0, 3), (std::deque<std::string>{"item0", "item1", "item2", "item3"}));
+}
