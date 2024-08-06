@@ -16,19 +16,19 @@ class KeyValueStore {
         void del(const std::string& key);
 
         // lists
-        int lPush(const std::string& key, const std::string& val);
-        int rPush(const std::string& key, const std::string& val);
+        size_t lPush(const std::string& key, const std::string& val);
+        size_t rPush(const std::string& key, const std::string& val);
         std::optional<std::string> lPop(const std::string& key);
         std::optional<std::string> rPop(const std::string& key);
         std::optional<std::deque<std::string>> lRange(const std::string& key, const int& start, const int& end);
-        int lLen(const std::string& key);
+        size_t lLen(const std::string& key);
         
-        // // sets
-        // void sAdd(const std::string& key, const std::string& val);
-        // void sRem(const std::string& key, const std::string& val);
-        // std::unordered_set<std::string> sMembers(const std::string& key);
-        // size_t sIsMember(const std::string& key, const std::string& val);
-        // size_t sCard(const std::string& key);
+        // sets
+        size_t sAdd(const std::string& key, const std::string& val);
+        void sRem(const std::string& key, const std::string& val);
+        std::unordered_set<std::string> sMembers(const std::string& key);
+        size_t sIsMember(const std::string& key, const std::string& val);
+        size_t sCard(const std::string& key);
 
     private:
         std::unordered_map<std::string, Value> store;
@@ -37,7 +37,7 @@ class KeyValueStore {
 
 class TypeMismatchError : public std::runtime_error {
     public:
-        explicit TypeMismatchError(const std::string& msg);
+        explicit TypeMismatchError(const std::string& key, const std::string& type);
 };
 
 #endif
