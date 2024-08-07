@@ -10,7 +10,7 @@ KeyValueStore::KeyValueStore()
 /*
     SET key value [NX | XX] [GET] [EX seconds | PX milliseconds |
     EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]
-    
+
     Set key to hold the string value. 
     If key already holds a value, it is overwritten, regardless of its type. 
     Any previous time to live associated with the key is discarded on successful SET operation.
@@ -229,16 +229,59 @@ size_t KeyValueStore::sAdd(const std::string& key, const std::string& val) {
 
     Integer reply: the number of members that were removed from the set, not including non existing members.
 */
-void KeyValueStore::sRem(const std::string& key, const std::string& val) {
-    
+size_t KeyValueStore::sRem(const std::string& key, const std::string& val) {
+    auto it = store.find(key);
+    if (it == store.end()) {
+        return 0;
+    }
+
+    if (!it->second.isSet()) {
+        throw TypeMismatchError(key, "set");
+    }
+
+    return it->second.getSet().erase(val);
 }
 
+/*
+    SMEMBERS key
+
+    Returns all the members of the set value stored at key.
+    This has the same effect as running SINTER with one argument key.
+
+    Set reply: a set with all the members of the set.
+*/
 std::unordered_set<std::string> KeyValueStore::sMembers(const std::string& key) {
+    auto it = store.find(key);
+    if (it == store.end()) {
+        return {};
+    }
 
+    if (!it->second.isSet()) {
+        throw TypeMismatchError(key, "set");
+    }
+    return it->second.getSet();
 }
 
-size_t KeyValueStore::sIsMember(const std::string& key, const std::string& val) {
+/*
+    SISMEMBER key member
 
+    Returns if member is a member of the set stored at key.
+
+    Integer reply: 0 if the element is not a member of the set, or when the key does not exist.
+    Integer reply: 1 if the element is a member of the set.
+*/
+size_t KeyValueStore::sIsMember(const std::string& key, const std::string& val) {
+    auto it = store.find(key);
+    if (it == store.end()) {
+        return 0;
+    }
+
+    if (!it->second.isSet()) {
+        throw TypeMismatchError(key, "set");
+    }
+
+    const auto& set = it->second.getSet();
+    return set.contains(val) ? 1 : 0;
 }
 
 /*

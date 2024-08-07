@@ -25,7 +25,7 @@ class KeyValueStore {
         
         // sets
         size_t sAdd(const std::string& key, const std::string& val);
-        void sRem(const std::string& key, const std::string& val);
+        size_t sRem(const std::string& key, const std::string& val);
         std::unordered_set<std::string> sMembers(const std::string& key);
         size_t sIsMember(const std::string& key, const std::string& val);
         size_t sCard(const std::string& key);
