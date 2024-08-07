@@ -20,8 +20,9 @@ KeyValueStore::KeyValueStore()
     Nil reply: GET given: The key didn't exist before the SET.
     Bulk string reply: GET given: The previous value of the key.
 */
-void KeyValueStore::set(const std::string& key, const std::string& val) {
+std::string KeyValueStore::set(const std::string& key, const std::string& val) {
     store.insert_or_assign(key, Value(val));
+    return "OK";
 }
 
 /*
@@ -53,8 +54,8 @@ std::optional<std::string> KeyValueStore::get(const std::string& key) {
     
     Integer reply: the number of keys that were removed.
 */
-void KeyValueStore::del(const std::string& key) {
-    store.erase(key);
+size_t KeyValueStore::del(const std::string& key) {
+    return store.erase(key);
 }
 
 /*

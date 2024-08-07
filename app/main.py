@@ -9,51 +9,40 @@ type_err = key_value_store_module.TypeMismatchError
 class Value(BaseModel):
     value: str
 
+def handle_request(func, *args):
+    try:
+        res = func(*args)
+        return {"result": res}
+    except type_err as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.put("/set/{key}/")
 async def set(key: str, request: Value):
-    store.set(key, request.value)
-    return {"result": "OK"}
+    return handle_request(store.set, key, request.value)
 
 @app.get("/get/{key}/")
 async def get(key: str):
-    try: 
-        res = store.get(key)
-        if res is None:
-            return {"result": None}
-        return {"result": res}
-    except type_err as e: 
-        raise HTTPException(status_code=400, detail=str(e))
+    return handle_request(store.get, key)
 
 @app.delete("/del/{key}/")
 async def delete(key: str):
-    res = store.delete(key)
-    return res
+    return handle_request(store.delete, key)
 
 @app.post("/lpush/{key}/")
 async def lpush(key: str, request: Value):
-    try: 
-        res = store.lpush(key, request.value)
-        return {"result": res}
-    except type_err as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return handle_request(store.lpush, key, request.value)
 
 @app.post("/rpush/{key}/")
 async def rpush(key: str, request: Value):
-    try:
-        res = store.rpush(key, request.value)
-        return {"result": res}
-    except type_err as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return handle_request(store.rpush, key, request.value)
 
 @app.post("/lpop/{key}/")
 async def lpop(key: str):
-    res = store.lpop(key)
-    return {"result": res}
+    return handle_request(store.lpop, key)
 
 @app.post("/rpop/{key}/")
 async def rpop(key: str):
-    res = store.rpop(key)
-    return {"result": res}
+    return handle_request(store.rpop, key)
 
 @app.get("/lrange/{key}/")
 async def lrange(key: str, start: int, end: int):
@@ -62,16 +51,31 @@ async def lrange(key: str, start: int, end: int):
     if start > end:
         raise HTTPException(status_code=400, detail="Start cannot be greater than end.")
     
-    res = store.lrange(key, start, end)
-    return {"result": res}
+    return handle_request(store.lrange, key, start, end)
 
-@app.post("/llen/{key}/")
+@app.get("/llen/{key}/")
 async def llen(key: str):
-    try:
-        res = store.llen(key)
-        return {"result": res}
-    except type_err as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return handle_request(store.llen, key)
+
+@app.post("/sadd/{key}/")
+async def sadd(key: str, request: Value):
+    return handle_request(store.sadd, key, request.value)
+
+@app.post("/srem/{key}/")
+async def srem(key: str, request: Value):
+    return handle_request(store.srem, key, request.value)
+
+@app.get("/smembers/{key}/")
+async def smembers(key: str):
+    return handle_request(store.smembers, key)
+
+@app.get("/sismember/{key}/")
+async def sismember(key: str, value: str):
+    return handle_request(store.sismember, key, value)
+
+@app.get("/scard/{key}/")
+async def scard(key: str):
+    return handle_request(store.scard, key)
 
 if __name__ == '__main__': 
     import uvicorn

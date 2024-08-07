@@ -17,5 +17,10 @@ PYBIND11_MODULE(key_value_store_module, m) {
         .def("lpop", &KeyValueStore::lPop)
         .def("rpop", &KeyValueStore::rPop)
         .def("lrange", &KeyValueStore::lRange)
-        .def("llen", &KeyValueStore::lLen);
+        .def("llen", &KeyValueStore::lLen)
+        .def("sadd", &KeyValueStore::sAdd)
+        .def("srem", &KeyValueStore::sRem)
+        .def("smembers", &KeyValueStore::sMembers)
+        .def("sismember", &KeyValueStore::sIsMember)
+        .def("scard", &KeyValueStore::sCard);
 }

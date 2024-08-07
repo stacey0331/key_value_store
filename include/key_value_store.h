@@ -11,9 +11,9 @@ class KeyValueStore {
         KeyValueStore();
 
         // strings
-        void set(const std::string& key, const std::string& val);
+        std::string set(const std::string& key, const std::string& val);
         std::optional<std::string> get(const std::string& key);
-        void del(const std::string& key);
+        size_t del(const std::string& key);
 
         // lists
         size_t lPush(const std::string& key, const std::string& val);
