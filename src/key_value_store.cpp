@@ -4,8 +4,8 @@
 TypeMismatchError::TypeMismatchError(const std::string& key, const std::string& type)
     : std::runtime_error("The value at key " + key + " is not a " + type + ".") {}
 
-KeyValueStore::KeyValueStore() 
-    : store(), capacity(0) {}
+KeyValueStore::KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> policy) 
+    : store(), capacity(capacity), evictionPolicy(std::move(policy)) {}
 
 /*
     SET key value [NX | XX] [GET] [EX seconds | PX milliseconds |
@@ -22,6 +22,11 @@ KeyValueStore::KeyValueStore()
 */
 std::string KeyValueStore::set(const std::string& key, const std::string& val) {
     store.insert_or_assign(key, Value(val));
+    evictionPolicy->keyAccessed(key);
+    if (store.size() > capacity) {
+        auto evicted = evictionPolicy->evict();
+        store.erase(evicted);
+    }
     return "OK";
 }
 
@@ -44,6 +49,7 @@ std::optional<std::string> KeyValueStore::get(const std::string& key) {
     if (!it->second.isString()) {
          throw TypeMismatchError(key, "stirng");
     }
+    evictionPolicy->keyAccessed(key);
     return it->second.getString();
 }
 
@@ -55,6 +61,15 @@ std::optional<std::string> KeyValueStore::get(const std::string& key) {
     Integer reply: the number of keys that were removed.
 */
 size_t KeyValueStore::del(const std::string& key) {
+    auto it = store.find(key);
+    if (!it->second.isString()) {
+        throw TypeMismatchError(key, "string");
+    }
+
+    if (it != store.end()) {
+        evictionPolicy->keyRemoved(key);
+    }
+    
     return store.erase(key);
 }
 

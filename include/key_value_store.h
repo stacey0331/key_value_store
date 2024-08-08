@@ -5,10 +5,12 @@
 #include <optional>
 #include <stdexcept>
 #include "value.h"
+#include "eviction_policy.h"
+#include "lru.h"
 
 class KeyValueStore {
     public:
-        KeyValueStore();
+        KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> policy);
 
         // strings
         std::string set(const std::string& key, const std::string& val);
@@ -33,6 +35,7 @@ class KeyValueStore {
     private:
         std::unordered_map<std::string, Value> store;
         size_t capacity;
+        std::unique_ptr<EvictionPolicy> evictionPolicy;
 };
 
 class TypeMismatchError : public std::runtime_error {

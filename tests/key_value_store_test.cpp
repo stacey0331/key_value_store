@@ -4,7 +4,7 @@
 class KeyValueStoreTest : public ::testing::Test {
     protected:
         void SetUp() override {
-            store = new KeyValueStore();
+            store = new KeyValueStore(5, std::make_unique<LRU>());
         }
 
         void TearDown() override {
@@ -80,3 +80,14 @@ TEST_F(KeyValueStoreTest, SetAddIsMember) {
     store->sAdd("test_set", "item1");
     EXPECT_EQ(store->sIsMember("test_set", "item1"), 1);
 }
+
+TEST_F(KeyValueStoreTest, LRUEvictString) {
+    store->set("test_key1", "item1");
+    store->set("test_key2", "item2");
+    store->set("test_key3", "item3");
+    store->set("test_key4", "item4");
+    store->set("test_key5", "item5");
+    store->set("test_key6", "item6");
+    EXPECT_FALSE(store->get("test_key1").has_value());
+}
+

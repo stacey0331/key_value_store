@@ -8,7 +8,7 @@ PYBIND11_MODULE(key_value_store_module, m) {
     py::register_exception<TypeMismatchError>(m, "TypeMismatchError");
 
     py::class_<KeyValueStore>(m, "KeyValueStore")
-        .def(py::init<>())
+        .def(py::init<size_t, std::unique_ptr<EvictionPolicy>>())
         .def("set", &KeyValueStore::set)
         .def("get", &KeyValueStore::get)
         .def("delete", &KeyValueStore::del)
