@@ -147,6 +147,7 @@ size_t KeyValueStore::del(const std::string& key) {
     Integer reply: the length of the list after the push operation.
 */
 size_t KeyValueStore::lPush(const std::string& key, const std::string& val) {
+    isExpired(key);
     auto [it, inserted] = store.emplace(key, std::deque<std::string>());
     
     if (!inserted && !it->second.isList()) {
@@ -177,6 +178,7 @@ size_t KeyValueStore::lPush(const std::string& key, const std::string& val) {
     Integer reply: the length of the list after the push operation.
 */
 size_t KeyValueStore::rPush(const std::string& key, const std::string& val) {
+    isExpired(key);
     auto [it, inserted] = store.emplace(key, std::deque<std::string>());
     
     if (!inserted && !it->second.isList()) {
@@ -205,6 +207,7 @@ size_t KeyValueStore::rPush(const std::string& key, const std::string& val) {
     Array reply: when called with the count argument, a list of popped elements.
 */
 std::optional<std::string> KeyValueStore::lPop(const std::string& key) {
+    isExpired(key);
     auto it = store.find(key);
     if (it == store.end() || !it->second.isList() || it->second.getList().empty()) {
         return std::nullopt;
@@ -229,6 +232,7 @@ std::optional<std::string> KeyValueStore::lPop(const std::string& key) {
     Array reply: when called with the count argument, a list of popped elements.
 */
 std::optional<std::string> KeyValueStore::rPop(const std::string& key) {
+    isExpired(key);
     auto it = store.find(key);
     if (it == store.end() || !it->second.isList() || it->second.getList().empty()) {
         return std::nullopt;
@@ -253,6 +257,7 @@ std::optional<std::string> KeyValueStore::rPop(const std::string& key) {
     Array reply: a list of elements in the specified range, or an empty array if the key doesn't exist.
 */
 std::optional<std::deque<std::string>> KeyValueStore::lRange(const std::string& key, const int& start, const int& end) {
+    isExpired(key);
     if (start > end || start < 0 || end < 0) return std::nullopt;
     
     auto it = store.find(key);
@@ -276,6 +281,7 @@ std::optional<std::deque<std::string>> KeyValueStore::lRange(const std::string& 
     Integer reply: the length of the list.
 */
 size_t KeyValueStore::lLen(const std::string& key) {
+    isExpired(key);
     auto it = store.find(key);
     if (it == store.end()) {
         return 0;

@@ -162,10 +162,18 @@ TEST_F(KeyValueStoreTestLFU, LFUEvictSet) {
 
 TEST_F(KeyValueStoreTestLFU, StringExpireBasic) {
     store->set("test_key1", "item1");
-    EXPECT_TRUE(store->get("test_key1").has_value());
     store->expire("test_key1", std::chrono::seconds(1));
+    EXPECT_TRUE(store->get("test_key1").has_value());
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_FALSE(store->get("test_key1").has_value());
+}
+
+TEST_F(KeyValueStoreTestLRU, ListExpireBasic) {
+    store->lPush("test_list1", "item1");
+    store->expire("test_list1", std::chrono::seconds(1));
+    EXPECT_TRUE(store->lRange("test_list1",0,0).has_value());
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(store->lRange("test_list1",0,0).has_value());
 }
 
 TEST_F(KeyValueStoreTestLFU, StringExpirePersist) {
@@ -184,4 +192,13 @@ TEST_F(KeyValueStoreTestLFU, StringExpireUpdate) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_TRUE(store->get("test_key1").has_value());
 }
+
+TEST_F(KeyValueStoreTestLFU, ListExpireUpdate) {
+    store->lPush("test_list1", "item1");
+    store->expire("test_list1", std::chrono::seconds(1));
+    store->rPush("test_list1", "item2");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(store->lRange("test_list1",0,1).has_value());
+}
+
 
