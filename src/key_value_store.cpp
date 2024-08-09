@@ -8,6 +8,67 @@ KeyValueStore::KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> po
     : store(), capacity(capacity), evictionPolicy(std::move(policy)) {}
 
 /*
+    Helper function to check if a key expired. 
+    If expired, remove from the store, and remove from the cache and expiration map accordingly. 
+*/
+bool KeyValueStore::isExpired(const std::string& key) {
+    auto it = expiration.find(key);
+    if (it != expiration.end() && std::chrono::steady_clock::now() >= it->second) {
+        store.erase(key);
+        expiration.erase(it);
+        evictionPolicy->keyRemoved(key);
+        return true;
+    }
+    return false;
+}
+
+/*
+    EXPIRE key seconds [NX | XX | GT | LT]
+
+    Set a timeout on key. After the timeout has expired, the key will automatically be deleted. 
+    The timeout will only be cleared by commands that delete or overwrite the contents of the key, including DEL, SET, GETSET and all the *STORE commands. 
+    This means that all the operations that conceptually alter the value stored at the key without replacing it with a new one will leave the timeout untouched. 
+    For instance, incrementing the value of a key with INCR, pushing a new value into a list with LPUSH, or altering the field value of a hash with HSET are all operations that will leave the timeout untouched.
+    Note that calling EXPIRE/PEXPIRE with a non-positive timeout or EXPIREAT/PEXPIREAT with a time in the past will result in the key being deleted rather than expired
+    (accordingly, the emitted key event will be del, not expired).
+
+    Integer reply: 0 if the timeout was not set; for example, the key doesn't exist, or the operation was skipped because of the provided arguments.
+    Integer reply: 1 if the timeout was set.
+*/
+size_t KeyValueStore::expire(const std::string& key, const std::chrono::seconds& sec) {
+    auto it = store.find(key);
+    if (it == store.end()) return 0;
+
+    if (sec <= std::chrono::seconds(0)) {
+        store.erase(key);
+        evictionPolicy->keyRemoved(key);
+        return 0;
+    }
+
+    expiration.insert_or_assign(key, std::chrono::steady_clock::now()+sec);
+    return 1;
+}
+
+/*
+    PERSIST key
+
+    Remove the existing timeout on key, turning the key from volatile (a key with an expire set) to persistent (a key that will never expire as no timeout is associated).
+
+    Integer reply: 0 if key does not exist or does not have an associated timeout.
+    Integer reply: 1 if the timeout has been removed.
+*/
+size_t KeyValueStore::persist(const std::string& key) {
+    auto store_it = store.find(key);
+    if (store_it == store.end()) return 0;
+
+    auto expire_it = expiration.find(key);
+    if (expire_it == expiration.end()) return 0;
+
+    expiration.erase(key);
+    return 1;
+}
+
+/*
     SET key value [NX | XX] [GET] [EX seconds | PX milliseconds |
     EXAT unix-time-seconds | PXAT unix-time-milliseconds | KEEPTTL]
 
@@ -22,6 +83,7 @@ KeyValueStore::KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> po
 */
 std::string KeyValueStore::set(const std::string& key, const std::string& val) {
     store.insert_or_assign(key, Value(val));
+    expiration.erase(key);
     evictionPolicy->keyAccessed(key);
     if (store.size() > capacity) {
         auto evicted = evictionPolicy->evict();
@@ -42,7 +104,7 @@ std::string KeyValueStore::set(const std::string& key, const std::string& val) {
 */
 std::optional<std::string> KeyValueStore::get(const std::string& key) {
     auto it = store.find(key);
-    if (it == store.end()) {
+    if (it == store.end() || isExpired(key)) {
         return std::nullopt;
     }
 
@@ -67,7 +129,7 @@ size_t KeyValueStore::del(const std::string& key) {
     if (it != store.end()) {
         evictionPolicy->keyRemoved(key);
     }
-
+    expiration.erase(key);
     return store.erase(key);
 }
 

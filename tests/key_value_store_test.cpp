@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <thread>
 #include "../include/key_value_store.h"
 
 class KeyValueStoreTestLRU : public ::testing::Test {
@@ -157,5 +158,30 @@ TEST_F(KeyValueStoreTestLFU, LFUEvictSet) {
     EXPECT_EQ(store->sCard("test_set1"), 1);
     EXPECT_EQ(store->sCard("test_set4"), 1);
     EXPECT_EQ(store->sCard("test_set5"), 1);
+}
+
+TEST_F(KeyValueStoreTestLFU, StringExpireBasic) {
+    store->set("test_key1", "item1");
+    EXPECT_TRUE(store->get("test_key1").has_value());
+    store->expire("test_key1", std::chrono::seconds(1));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(store->get("test_key1").has_value());
+}
+
+TEST_F(KeyValueStoreTestLFU, StringExpirePersist) {
+    store->set("test_key1", "item1");
+    store->expire("test_key1", std::chrono::seconds(1));
+    store->persist("test_key1");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_TRUE(store->get("test_key1").has_value());
+}
+
+TEST_F(KeyValueStoreTestLFU, StringExpireUpdate) {
+    store->set("test_key1", "item1");
+    store->expire("test_key1", std::chrono::seconds(2));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    store->set("test_key1", "item2");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_TRUE(store->get("test_key1").has_value());
 }
 

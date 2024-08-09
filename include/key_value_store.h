@@ -13,6 +13,10 @@ class KeyValueStore {
     public:
         KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> policy);
 
+        // expiration
+        size_t expire(const std::string& key, const std::chrono::seconds& sec);
+        size_t persist(const std::string& key);
+
         // strings
         std::string set(const std::string& key, const std::string& val);
         std::optional<std::string> get(const std::string& key);
@@ -35,8 +39,12 @@ class KeyValueStore {
 
     private:
         std::unordered_map<std::string, Value> store;
+        std::unordered_map<std::string, std::chrono::time_point<std::chrono::steady_clock>> expiration;
         size_t capacity;
         std::unique_ptr<EvictionPolicy> evictionPolicy;
+
+        // helpers
+        bool isExpired(const std::string& key);
 };
 
 class TypeMismatchError : public std::runtime_error {
