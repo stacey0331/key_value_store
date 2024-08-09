@@ -7,6 +7,7 @@
 #include "value.h"
 #include "eviction_policy.h"
 #include "lru.h"
+#include "lfu.h"
 
 class KeyValueStore {
     public:

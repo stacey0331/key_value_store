@@ -1,3 +1,6 @@
+#ifndef LRU_H
+#define LRU_H
+
 #include <list>
 #include "eviction_policy.h"
 
@@ -27,3 +30,5 @@ class LRU : public EvictionPolicy {
     private: 
         std::list<std::string> keys;
 };
+
+#endif
