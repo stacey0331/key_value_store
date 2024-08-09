@@ -4,6 +4,9 @@
 TypeMismatchError::TypeMismatchError(const std::string& key, const std::string& type)
     : std::runtime_error("The value at key " + key + " is not a " + type + ".") {}
 
+KeyValueStore::KeyValueStore()
+    :store(), capacity(100), evictionPolicy(std::make_unique<LRU>()) {}
+    
 KeyValueStore::KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> policy) 
     : store(), capacity(capacity), evictionPolicy(std::move(policy)) {}
 
@@ -305,6 +308,7 @@ size_t KeyValueStore::lLen(const std::string& key) {
     Integer reply: the number of elements that were added to the set, not including all the elements already present in the set.
 */
 size_t KeyValueStore::sAdd(const std::string& key, const std::string& val) {
+    isExpired(key);
     auto [it, inserted] = store.emplace(key, std::unordered_set<std::string>());
     if (!inserted && !it->second.isSet()) {
         throw TypeMismatchError(key, "set");
@@ -331,6 +335,7 @@ size_t KeyValueStore::sAdd(const std::string& key, const std::string& val) {
     Integer reply: the number of members that were removed from the set, not including non existing members.
 */
 size_t KeyValueStore::sRem(const std::string& key, const std::string& val) {
+    isExpired(key);
     auto it = store.find(key);
     if (it == store.end()) {
         return 0;
@@ -353,6 +358,7 @@ size_t KeyValueStore::sRem(const std::string& key, const std::string& val) {
     Set reply: a set with all the members of the set.
 */
 std::unordered_set<std::string> KeyValueStore::sMembers(const std::string& key) {
+    isExpired(key);
     auto it = store.find(key);
     if (it == store.end()) {
         return {};
@@ -374,6 +380,7 @@ std::unordered_set<std::string> KeyValueStore::sMembers(const std::string& key) 
     Integer reply: 1 if the element is a member of the set.
 */
 size_t KeyValueStore::sIsMember(const std::string& key, const std::string& val) {
+    isExpired(key);
     auto it = store.find(key);
     if (it == store.end()) {
         return 0;
@@ -396,6 +403,7 @@ size_t KeyValueStore::sIsMember(const std::string& key, const std::string& val) 
     Integer reply: the cardinality (number of elements) of the set, or 0 if the key does not exist.
 */
 size_t KeyValueStore::sCard(const std::string& key) {
+    isExpired(key);
     auto it = store.find(key);
     if (it == store.end()) {
         return 0;

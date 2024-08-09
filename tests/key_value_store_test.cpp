@@ -201,4 +201,14 @@ TEST_F(KeyValueStoreTestLFU, ListExpireUpdate) {
     EXPECT_FALSE(store->lRange("test_list1",0,1).has_value());
 }
 
-
+TEST_F(KeyValueStoreTestLRU, SetExpireUpdate) {
+    EXPECT_EQ(store->expire("test_set1", std::chrono::seconds(1)), 0);
+    store->sAdd("test_set1", "item1");
+    store->sAdd("test_set2", "item2");
+    store->expire("test_set1", std::chrono::seconds(1));
+    store->expire("test_set2", std::chrono::seconds(1));
+    store->sRem("test_set1", "item1");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_EQ(store->sCard("test_set1"), 0);
+    EXPECT_EQ(store->sCard("test_set2"), 0);
+}

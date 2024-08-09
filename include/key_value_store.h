@@ -11,6 +11,7 @@
 
 class KeyValueStore {
     public:
+        KeyValueStore();
         KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> policy);
 
         // expiration
