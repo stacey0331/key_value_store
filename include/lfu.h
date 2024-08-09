@@ -28,7 +28,7 @@ class LFU : public EvictionPolicy {
 
         std::string evict() override {
             auto minItRev = keys.rbegin();
-            size_t minAccess = freq[*keys.begin()];
+            size_t minAccess = freq[*keys.rbegin()];
 
             for(auto it = keys.rbegin(); it != keys.rend(); ++it) {
                 if (freq[*it] < minAccess) {

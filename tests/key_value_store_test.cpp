@@ -97,20 +97,65 @@ TEST_F(KeyValueStoreTestLRU, SetAddIsMember) {
 TEST_F(KeyValueStoreTestLRU, LRUEvictString) {
     store->set("test_key1", "item1");
     store->set("test_key2", "item2");
-    store->set("test_key3", "item3");
-    store->set("test_key4", "item4");
-    store->set("test_key5", "item5");
-    store->set("test_key6", "item6");
+    store->set("test_key3", "item2");
+    store->set("test_key4", "item2");
+    store->get("test_key1");
+    store->get("test_key2");
+    store->get("test_key3");
+    store->get("test_key4");
+    store->set("test_key5", "item3");
+    store->set("test_key6", "item4");
     EXPECT_FALSE(store->get("test_key1").has_value());
+}
+
+TEST_F(KeyValueStoreTestLRU, LRUEvictList) {
+    store->lPush("test_list1", "item1");
+    store->lPush("test_list2", "item2");
+    store->lPush("test_list3", "item3");
+    store->lPush("test_list4", "item4");
+    store->lPush("test_list5", "item5");
+    store->lRange("test_list1", 0, 0);
+    store->rPop("test_list2");
+    store->lPush("test_list6", "item6");
+
+    EXPECT_EQ(store->lLen("test_key3"), 0);
+    EXPECT_FALSE(store->lRange("test_key3", 0, 0).has_value());
 }
 
 TEST_F(KeyValueStoreTestLFU, LFUEvictString) {
     store->set("test_key1", "item1");
     store->set("test_key2", "item2");
-    store->set("test_key3", "item3");
     store->get("test_key1");
     store->get("test_key2");
+    store->set("test_key3", "item3");
     store->set("test_key4", "item4");
+
     EXPECT_FALSE(store->get("test_key3").has_value());
+    EXPECT_TRUE(store->get("test_key1").has_value());
+    EXPECT_TRUE(store->get("test_key2").has_value());
+    EXPECT_TRUE(store->get("test_key4").has_value());
+}
+
+TEST_F(KeyValueStoreTestLFU, LFUEvictSet) {
+    store->sAdd("test_set1", "item1");
+    store->sAdd("test_set1", "item1.5");
+    store->sAdd("test_set2", "item2");
+    store->sRem("test_set1", "item1");
+    store->sAdd("test_set3", "item3");
+    store->sAdd("test_set4", "item4");
+    store->sIsMember("test_set2", "itemx");
+    store->sAdd("test_set5", "item5");
+    
+    EXPECT_TRUE(store->sMembers("test_set2").empty());
+    EXPECT_TRUE(store->sMembers("test_set3").empty());
+    EXPECT_FALSE(store->sMembers("test_set1").empty());
+    EXPECT_FALSE(store->sMembers("test_set4").empty());
+    EXPECT_FALSE(store->sMembers("test_set5").empty());
+
+    EXPECT_EQ(store->sCard("test_set2"), 0);
+    EXPECT_EQ(store->sCard("test_set3"), 0);
+    EXPECT_EQ(store->sCard("test_set1"), 1);
+    EXPECT_EQ(store->sCard("test_set4"), 1);
+    EXPECT_EQ(store->sCard("test_set5"), 1);
 }
 

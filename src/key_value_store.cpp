@@ -57,19 +57,17 @@ std::optional<std::string> KeyValueStore::get(const std::string& key) {
     DEL key [key ...]
 
     Removes the specified keys. A key is ignored if it does not exist. 
+    Delete key for any type of value. 
     
     Integer reply: the number of keys that were removed.
 */
 size_t KeyValueStore::del(const std::string& key) {
     auto it = store.find(key);
-    if (!it->second.isString()) {
-        throw TypeMismatchError(key, "string");
-    }
 
     if (it != store.end()) {
         evictionPolicy->keyRemoved(key);
     }
-    
+
     return store.erase(key);
 }
 
@@ -95,6 +93,11 @@ size_t KeyValueStore::lPush(const std::string& key, const std::string& val) {
 
     auto& lst = it->second.getList();
     lst.push_front(val);
+    evictionPolicy->keyAccessed(key);
+    if (store.size() > capacity) {
+        auto evicted = evictionPolicy->evict();
+        store.erase(evicted);
+    }
     return lst.size();
 }
 
@@ -120,6 +123,11 @@ size_t KeyValueStore::rPush(const std::string& key, const std::string& val) {
 
     auto& lst = it->second.getList();
     lst.push_back(val);
+    evictionPolicy->keyAccessed(key);
+    if (store.size() > capacity) {
+        auto evicted = evictionPolicy->evict();
+        store.erase(evicted);
+    }
     return lst.size();
 }
 
@@ -143,6 +151,7 @@ std::optional<std::string> KeyValueStore::lPop(const std::string& key) {
     auto& lst = it->second.getList();
     auto ret = std::move(lst.front());
     lst.pop_front();
+    evictionPolicy->keyAccessed(key);
     return ret;
 }
 
@@ -166,6 +175,7 @@ std::optional<std::string> KeyValueStore::rPop(const std::string& key) {
     auto& lst = it->second.getList();
     auto ret = std::move(lst.back());
     lst.pop_back();
+    evictionPolicy->keyAccessed(key);
     return ret;
 }
 
@@ -189,6 +199,7 @@ std::optional<std::deque<std::string>> KeyValueStore::lRange(const std::string& 
     auto& lst = it->second.getList();
     if (start >= lst.size()) return std::nullopt;
 
+    evictionPolicy->keyAccessed(key);
     auto endIdx = std::min(static_cast<size_t>(end), lst.size()-1);
     return std::deque<std::string>(lst.begin()+start, lst.begin()+endIdx+1);
 }
@@ -211,6 +222,7 @@ size_t KeyValueStore::lLen(const std::string& key) {
     if (!it->second.isList()) {
         throw TypeMismatchError(key, "list");
     }
+    evictionPolicy->keyAccessed(key);
     return it->second.getList().size();
 }
 
@@ -232,6 +244,11 @@ size_t KeyValueStore::sAdd(const std::string& key, const std::string& val) {
 
     auto& set = it->second.getSet();
     set.insert(val);
+    evictionPolicy->keyAccessed(key);
+    if (store.size() > capacity) {
+        auto evicted = evictionPolicy->evict();
+        store.erase(evicted);
+    }
     return 1;
 }
 
@@ -255,6 +272,7 @@ size_t KeyValueStore::sRem(const std::string& key, const std::string& val) {
         throw TypeMismatchError(key, "set");
     }
 
+    evictionPolicy->keyAccessed(key);
     return it->second.getSet().erase(val);
 }
 
@@ -275,6 +293,7 @@ std::unordered_set<std::string> KeyValueStore::sMembers(const std::string& key) 
     if (!it->second.isSet()) {
         throw TypeMismatchError(key, "set");
     }
+    evictionPolicy->keyAccessed(key);
     return it->second.getSet();
 }
 
@@ -296,6 +315,7 @@ size_t KeyValueStore::sIsMember(const std::string& key, const std::string& val) 
         throw TypeMismatchError(key, "set");
     }
 
+    evictionPolicy->keyAccessed(key);
     const auto& set = it->second.getSet();
     return set.contains(val) ? 1 : 0;
 }
@@ -316,5 +336,6 @@ size_t KeyValueStore::sCard(const std::string& key) {
     if (!it->second.isSet()) {
         throw TypeMismatchError(key, "set");
     }
+    evictionPolicy->keyAccessed(key);
     return it->second.getSet().size();
 }
