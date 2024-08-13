@@ -6,7 +6,7 @@ export pybind11_DIR="$PYBIND11_DIR" # accessible by child process
 
 mkdir build && \
 cd build && \
-cmake .. && \
+cmake -DBUILD_PYBIND=ON -DBUILD_TESTS=OFF .. && \
 cmake --build . && \
 cd .. && \
 cp build/key_value_store_module*.so app && \

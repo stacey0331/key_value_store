@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import key_value_store_module
+from datetime import timedelta
 
 app = FastAPI()
 store = key_value_store_module.KeyValueStore()
@@ -15,6 +16,14 @@ def handle_request(func, *args):
         return {"result": res}
     except type_err as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/expire/{key}/")
+async def expire(key: str, sec: int):
+    return handle_request(store.expire, key, timedelta(seconds=sec))
+
+@app.post("/persist/{key}/")
+async def persist(key: str):
+    return handle_request(store.persist, key)
 
 @app.put("/set/{key}/")
 async def set(key: str, request: Value):
