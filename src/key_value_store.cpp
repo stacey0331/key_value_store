@@ -24,27 +24,37 @@ size_t KeyValueStore::setCapacity(const size_t newCapacity) {
     return newCapacity;
 }
 
-// /*
-//     Clears the store if the eviction policy was LFU. 
+/*
+    Clears the store if the eviction policy was LFU. 
     
-//     Integer reply: 0 if the eviction policy was already LRU. Keeps existing store unchanged.
-//     Integer reply: 1 if changed to LRU successfully. The store is cleared. 
-// */
-// size_t KeyValueStore::useLRU() {
-//     if (dynamic_cast<LRU*>(evictionPolicy.get())) {
-//         return 0;
-//     }
+    Integer reply: 0 if the eviction policy was already LRU. Keeps existing store unchanged.
+    Integer reply: 1 if changed to LRU successfully. The store is cleared. 
+*/
+size_t KeyValueStore::useLRU() {
+    if (dynamic_cast<LRU*>(evictionPolicy.get())) {
+        return 0;
+    }
 
+    store.clear();
+    evictionPolicy = std::make_unique<LRU>();
+    return 1;
+}
 
+/*
+    Clears the store if the eviction policy was LRU. 
+    
+    Integer reply: 0 if the eviction policy was already LFU. Keeps existing store unchanged.
+    Integer reply: 1 if changed to LFU successfully. The store is cleared. 
+*/
+size_t KeyValueStore::useLFU() {
+    if (dynamic_cast<LFU*>(evictionPolicy.get())) {
+        return 0;
+    }
 
-// }
-
-// /*
-//     Clears the store if the eviction policy was LRU
-// */
-// size_t KeyValueStore::useLFU() {
-
-// }
+    store.clear();
+    evictionPolicy = std::make_unique<LFU>();
+    return 1;
+}
 
 /*
     Helper function to check if a key expired. 

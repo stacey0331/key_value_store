@@ -217,3 +217,16 @@ TEST_F(KeyValueStoreTest, SetCapacityLRU) {
     EXPECT_TRUE(store->get("test_key2").has_value());
     EXPECT_EQ(store->sCard("test_set1"), 1);
 }
+
+TEST_F(KeyValueStoreTest, SetCapacityChangeEviction) {
+    EXPECT_EQ(store->useLRU(), 0);
+    EXPECT_EQ(store->useLFU(), 1);
+    store->setCapacity(3);
+    store->lPush("test_list1", "item1");
+    store->set("test_key1", "item1");
+    store->lLen("test_list1");
+    store->get("test_key1");
+    store->set("test_key2", "item2");
+    store->sAdd("test_set1", "item1");
+    EXPECT_FALSE(store->get("test_key2").has_value());
+}

@@ -1,3 +1,14 @@
+/**
+ * @file lfu.h
+ * @brief Define and implement a Least Frequently Used (LFU) cache.
+ * 
+ * The cache evicts the least frequently used items when the capacity is exceeded.
+ * Note that when the cache is at its capacity and all items have access count more than 1, no new items could be added. 
+ * The above note is implemented in key_value_store.cpp where the item is added before eviction. 
+ * When multiple items have the same minimum count, the least recently used item is evicted. 
+ * 
+ */
+
 #ifndef LFU_H
 #define LFU_H
 

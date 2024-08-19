@@ -14,8 +14,8 @@ class KeyValueStore {
         KeyValueStore();
 
         size_t setCapacity(const size_t newCapacity);
-        // size_t useLRU();
-        // size_t useLFU();
+        size_t useLRU();
+        size_t useLFU();
 
         // expiration
         size_t expire(const std::string& key, const std::chrono::seconds& sec);

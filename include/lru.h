@@ -1,3 +1,10 @@
+/**
+ * @file lru.h
+ * @brief Define and implement a Least Recently Used (LRU) cache.
+ * 
+ * The cache evicts the least recently used items when the capacity is exceeded.
+ */
+
 #ifndef LRU_H
 #define LRU_H
 
