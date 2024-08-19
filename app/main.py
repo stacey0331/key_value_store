@@ -16,6 +16,18 @@ def handle_request(func, *args):
         return {"result": res}
     except type_err as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+@app.post("/setcapacity/")
+async def setcapacity(capacity: int):
+    return handle_request(store.setcapacity, capacity)
+
+@app.post("/uselru/")
+async def uselru():
+    return handle_request(store.uselru)
+
+@app.post("/uselfu/")
+async def uselfu():
+    return handle_request(store.uselfu)
 
 @app.post("/expire/{key}/")
 async def expire(key: str, sec: int):

@@ -10,6 +10,9 @@ PYBIND11_MODULE(key_value_store_module, m) {
 
     py::class_<KeyValueStore>(m, "KeyValueStore")
         .def(py::init())
+        .def("setcapacity", &KeyValueStore::setCapacity)
+        .def("uselru", &KeyValueStore::useLRU)
+        .def("uselfu", &KeyValueStore::useLFU)
         .def("expire", &KeyValueStore::expire)
         .def("persist", &KeyValueStore::persist)
         .def("set", &KeyValueStore::set)

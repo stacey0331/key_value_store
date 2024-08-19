@@ -137,6 +137,9 @@ std::string KeyValueStore::set(const std::string& key, const std::string& val) {
     if (store.size() > capacity) {
         auto evicted = evictionPolicy->evict();
         store.erase(evicted);
+        if (key == evicted) {
+            return "EVICTED";
+        }
     }
     return "OK";
 }
