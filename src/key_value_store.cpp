@@ -6,9 +6,45 @@ TypeMismatchError::TypeMismatchError(const std::string& key, const std::string& 
 
 KeyValueStore::KeyValueStore()
     :store(), capacity(100), evictionPolicy(std::make_unique<LRU>()) {}
+
+/*
+    If new capacity is smaller than the original number of pairs in store, remove with appropriate eviction policy. 
+*/
+size_t KeyValueStore::setCapacity(const size_t newCapacity) {
+    if (newCapacity < store.size()) {
+        size_t evictNum = store.size()-newCapacity;
+        std::cout << evictNum << std::endl;
+        for(size_t i = 0; i < evictNum; ++i) {
+            auto evicted = evictionPolicy->evict();
+            std::cout << evicted << std::endl;
+            store.erase(evicted);
+        }
+    }
+    capacity = newCapacity;
+    return newCapacity;
+}
+
+// /*
+//     Clears the store if the eviction policy was LFU. 
     
-KeyValueStore::KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> policy) 
-    : store(), capacity(capacity), evictionPolicy(std::move(policy)) {}
+//     Integer reply: 0 if the eviction policy was already LRU. Keeps existing store unchanged.
+//     Integer reply: 1 if changed to LRU successfully. The store is cleared. 
+// */
+// size_t KeyValueStore::useLRU() {
+//     if (dynamic_cast<LRU*>(evictionPolicy.get())) {
+//         return 0;
+//     }
+
+
+
+// }
+
+// /*
+//     Clears the store if the eviction policy was LRU
+// */
+// size_t KeyValueStore::useLFU() {
+
+// }
 
 /*
     Helper function to check if a key expired. 

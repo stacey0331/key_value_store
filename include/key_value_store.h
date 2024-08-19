@@ -12,7 +12,10 @@
 class KeyValueStore {
     public:
         KeyValueStore();
-        KeyValueStore(size_t capacity, std::unique_ptr<EvictionPolicy> policy);
+
+        size_t setCapacity(const size_t newCapacity);
+        // size_t useLRU();
+        // size_t useLFU();
 
         // expiration
         size_t expire(const std::string& key, const std::chrono::seconds& sec);

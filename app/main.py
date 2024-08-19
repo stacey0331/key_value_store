@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import key_value_store_module
 from datetime import timedelta
+from key_value_store_module import KeyValueStore, TypeMismatchError
 
 app = FastAPI()
-store = key_value_store_module.KeyValueStore()
-type_err = key_value_store_module.TypeMismatchError
+store = KeyValueStore()
+type_err = TypeMismatchError
 
 class Value(BaseModel):
     value: str
