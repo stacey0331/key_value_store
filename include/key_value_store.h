@@ -8,6 +8,7 @@
 #include "eviction_policy.h"
 #include "lru.h"
 #include "lfu.h"
+#include "database_manager.h"
 
 class KeyValueStore {
     public:
@@ -46,6 +47,8 @@ class KeyValueStore {
         std::unordered_map<std::string, std::chrono::time_point<std::chrono::steady_clock>> expiration;
         size_t capacity;
         std::unique_ptr<EvictionPolicy> evictionPolicy;
+
+        DatabaseManager dbManager;
 
         // helpers
         bool isExpired(const std::string& key);

@@ -5,7 +5,12 @@ TypeMismatchError::TypeMismatchError(const std::string& key, const std::string& 
     : std::runtime_error("The value at key " + key + " is not a " + type + ".") {}
 
 KeyValueStore::KeyValueStore()
-    :store(), capacity(100), evictionPolicy(std::make_unique<LRU>()) {}
+    : store(), 
+      capacity(100), 
+      evictionPolicy(std::make_unique<LRU>()),
+      dbManager(DatabaseManager("dbname=key_value_store user=staceylee password=Stacey2002* hostaddr=127.0.0.1 port=5432")) {
+    dbManager.connect();
+}
 
 /*
     If new capacity is smaller than the original number of pairs in store, remove with appropriate eviction policy. 
