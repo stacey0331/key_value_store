@@ -16,25 +16,33 @@ void DatabaseManager::connect() {
 
 void DatabaseManager::disconnect() {
     if (conn) {
-        // conn->disconnect();
         delete conn;
         conn = nullptr;
     }
 }
 
-void DatabaseManager::persistKeyValue(const std::string& key, const std::string& value) {
+void DatabaseManager::insertString(const size_t userId, const std::string& key, const std::string& value) {
     pqxx::work txn(*conn);
-    txn.exec0("INSERT INTO key_value_store (key, value) VALUES (" + txn.quote(key) + ", " + txn.quote(value) + ") ON CONFLICT (key) DO UPDATE SET value = excluded.value;");
+    txn.exec0("INSERT INTO strings (user_id, key, value) VALUES (" 
+                + std::to_string(userId) + ", "
+                + txn.quote(key) + ", "
+                + txn.quote(value) + ") "
+                "ON CONFLICT (user_id, key) DO UPDATE "
+                "SET value = excluded.value;");
     txn.commit();
 }
 
-std::string DatabaseManager::fetchValue(const std::string& key) {
+std::optional<std::string> DatabaseManager::fetchString(const size_t userId, const std::string& key) {
     pqxx::work txn(*conn);
-    pqxx::result res = txn.exec("SELECT value FROM key_value_store WHERE key = " + txn.quote(key));
+    pqxx::result res = txn.exec(
+        "SELECT value FROM " + std::string(STRING_TABLE) + 
+        " WHERE user_id = " + std::to_string(userId) + 
+        " AND key = " + txn.quote(key)
+    );
     txn.commit();
     if (!res.empty()) {
         return res[0][0].c_str();
     } else {
-        throw std::runtime_error("Key not found");
+        return std::nullopt;
     }
 }

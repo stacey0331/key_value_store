@@ -5,6 +5,10 @@
 #include <string>
 #include <iostream>
 
+constexpr std::string_view STRING_TABLE = "strings";
+constexpr std::string_view LIST_TABLE = "lists";
+constexpr std::string_view SET_TABLE = "sets";
+
 class DatabaseManager {
 public:
     DatabaseManager(const std::string& connectionString);
@@ -12,8 +16,8 @@ public:
 
     void connect();
     void disconnect();
-    void persistKeyValue(const std::string& key, const std::string& value);
-    std::string fetchValue(const std::string& key);
+    void insertString(const size_t userId, const std::string& key, const std::string& value);
+    std::optional<std::string> fetchString(const size_t userId, const std::string& key);
 
 private:
     std::string connectionString;

@@ -18,3 +18,11 @@ build.sh:
 ```
 fastapi dev app/main.py
 ```
+
+CREATE TABLE strings (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    key VARCHAR(255) NOT NULL,
+    value VARCHAR(2000),
+    UNIQUE (user_id, key)
+);
