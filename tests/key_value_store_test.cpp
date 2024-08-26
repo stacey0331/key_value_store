@@ -15,10 +15,6 @@ class KeyValueStoreTest : public ::testing::Test {
         KeyValueStore* store;
 };
 
-TEST_F(KeyValueStoreTest, DBTest) {
-    EXPECT_EQ(store->testDb("test_key"), "yo!");
-}
-
 TEST_F(KeyValueStoreTest, SetAndGet) {
     store->set(1, "test_key", "test_value");
     EXPECT_EQ(store->get(1, "test_key"), "test_value");
@@ -86,13 +82,13 @@ TEST_F(KeyValueStoreTest, SetAndGet) {
 //     EXPECT_EQ(store->sIsMember("test_set", "item1"), 1);
 // }
 
-// TEST_F(KeyValueStoreTest, StringExpireBasic) {
-//     store->set("test_key1", "item1");
-//     store->expire("test_key1", std::chrono::seconds(1));
-//     EXPECT_TRUE(store->get("test_key1").has_value());
-//     std::this_thread::sleep_for(std::chrono::seconds(1));
-//     EXPECT_FALSE(store->get("test_key1").has_value());
-// }
+TEST_F(KeyValueStoreTest, StringExpireBasic) {
+    store->set(1, "test_key1", "item1");
+    store->expire(1, "test_key1", std::chrono::seconds(1));
+    EXPECT_TRUE(store->get(1, "test_key1").has_value());
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(store->get(1, "test_key1").has_value());
+}
 
 // TEST_F(KeyValueStoreTest, ListExpireBasic) {
 //     store->lPush("test_list1", "item1");

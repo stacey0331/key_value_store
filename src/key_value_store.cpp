@@ -11,10 +11,6 @@ KeyValueStore::KeyValueStore()
     dbManager.connect();
 }
 
-std::optional<std::string> KeyValueStore::testDb(const std::string key) {
-    return dbManager.fetchString(11, key);
-}
-
 // /*
 //     If new capacity is smaller than the original number of pairs in store, remove with appropriate eviction policy. 
 // */
@@ -64,47 +60,45 @@ std::optional<std::string> KeyValueStore::testDb(const std::string key) {
 //     return 1;
 // }
 
-// /*
-//     Helper function to check if a key expired. 
-//     If expired, remove from the store, and remove from the cache and expiration map accordingly. 
-// */
-// bool KeyValueStore::isExpired(const std::string& key) {
-//     auto it = expiration.find(key);
-//     if (it != expiration.end() && std::chrono::steady_clock::now() >= it->second) {
-//         store.erase(key);
-//         expiration.erase(it);
-//         evictionPolicy->keyRemoved(key);
-//         return true;
-//     }
-//     return false;
-// }
+/*
+    Helper function to check if a key expired. 
+    If expired, remove from the store, and remove from the cache and expiration map accordingly. 
+*/
+bool KeyValueStore::isExpired(const size_t storeId, const std::string& key, const std::string& type) {
+    auto expirationTimeOpt = dbManager.getExpiration(storeId, key, type);
+    if (!expirationTimeOpt) {
+        return false;
+    }
 
-// /*
-//     EXPIRE key seconds [NX | XX | GT | LT]
+    auto now = std::chrono::steady_clock::now();
+    if (now > *expirationTimeOpt) {
+        dbManager.deleteKey(storeId, key);
+        return true;
+    }
+    return false;
+}
 
-//     Set a timeout on key. After the timeout has expired, the key will automatically be deleted. 
-//     The timeout will only be cleared by commands that delete or overwrite the contents of the key, including DEL, SET, GETSET and all the *STORE commands. 
-//     This means that all the operations that conceptually alter the value stored at the key without replacing it with a new one will leave the timeout untouched. 
-//     For instance, incrementing the value of a key with INCR, pushing a new value into a list with LPUSH, or altering the field value of a hash with HSET are all operations that will leave the timeout untouched.
-//     Note that calling EXPIRE/PEXPIRE with a non-positive timeout or EXPIREAT/PEXPIREAT with a time in the past will result in the key being deleted rather than expired
-//     (accordingly, the emitted key event will be del, not expired).
+/*
+    EXPIRE key seconds [NX | XX | GT | LT]
 
-//     Integer reply: 0 if the timeout was not set; for example, the key doesn't exist, or the operation was skipped because of the provided arguments.
-//     Integer reply: 1 if the timeout was set.
-// */
-// size_t KeyValueStore::expire(const std::string& key, const std::chrono::seconds& sec) {
-//     auto it = store.find(key);
-//     if (it == store.end()) return 0;
+    Set a timeout on key. After the timeout has expired, the key will automatically be deleted. 
+    The timeout will only be cleared by commands that delete or overwrite the contents of the key, including DEL, SET, GETSET and all the *STORE commands. 
+    This means that all the operations that conceptually alter the value stored at the key without replacing it with a new one will leave the timeout untouched. 
+    For instance, incrementing the value of a key with INCR, pushing a new value into a list with LPUSH, or altering the field value of a hash with HSET are all operations that will leave the timeout untouched.
+    Note that calling EXPIRE/PEXPIRE with a non-positive timeout or EXPIREAT/PEXPIREAT with a time in the past will result in the key being deleted rather than expired
+    (accordingly, the emitted key event will be del, not expired).
 
-//     if (sec <= std::chrono::seconds(0)) {
-//         store.erase(key);
-//         evictionPolicy->keyRemoved(key);
-//         return 0;
-//     }
+    Integer reply: 0 if the timeout was not set; for example, the key doesn't exist, or the operation was skipped because of the provided arguments.
+    Integer reply: 1 if the timeout was set.
+*/
+size_t KeyValueStore::expire(const size_t storeId, const std::string& key, const std::chrono::seconds& sec) {
+    if (sec <= std::chrono::seconds(0)) {
+        dbManager.deleteKey(storeId, key);
+        return 0;
+    }
 
-//     expiration.insert_or_assign(key, std::chrono::steady_clock::now()+sec);
-//     return 1;
-// }
+    return dbManager.setExpiration(storeId, key, sec);
+}
 
 // /*
 //     PERSIST key
@@ -138,13 +132,11 @@ std::optional<std::string> KeyValueStore::testDb(const std::string key) {
     Nil reply: GET given: The key didn't exist before the SET.
     Bulk string reply: GET given: The previous value of the key.
 */
-std::string KeyValueStore::set(const size_t userId, const std::string& key, const std::string& val) {
-    dbManager.insertString(userId, key, val);
-    expiration.erase(key);
-    evictionPolicy->keyAccessed(key);
-    // if (store.size() > capacity) {
-    //     auto evicted = evictionPolicy->evict();
-    //     store.erase(evicted);
+std::string KeyValueStore::set(const size_t storeId, const std::string& key, const std::string& val) {
+    dbManager.insertString(storeId, key, val);
+    // evictionPolicy->keyAccessed(key);
+    // if (dbManager.exceedsCapacity(storeId)) {
+    //     auto evicted = dbManager.evict(storeId);
     //     if (key == evicted) {
     //         return "EVICTED";
     //     }
@@ -162,17 +154,13 @@ std::string KeyValueStore::set(const size_t userId, const std::string& key, cons
     Bulk string reply: the value of the key.
     Nil reply: if the key does not exist.
 */
-std::optional<std::string> KeyValueStore::get(const size_t userId, const std::string& key) {
-    // auto it = store.find(key);
-    // if (it == store.end() || isExpired(key)) {
-    //     return std::nullopt;
-    // }
+std::optional<std::string> KeyValueStore::get(const size_t storeId, const std::string& key) {
+    if (isExpired(storeId, key, "string")) {
+        return std::nullopt;
+    }
 
-    // if (!it->second.isString()) {
-    //      throw TypeMismatchError(key, "stirng");
-    // }
-    evictionPolicy->keyAccessed(key);
-    return dbManager.fetchString(userId, key);
+    // evictionPolicy->keyAccessed(key);
+    return dbManager.fetchString(storeId, key);
 }
 
 // /* 

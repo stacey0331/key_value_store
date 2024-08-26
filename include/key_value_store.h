@@ -15,18 +15,17 @@ class KeyValueStore {
     public:
         KeyValueStore();
 
-        std::optional<std::string> testDb(const std::string key);
         // size_t setCapacity(const size_t newCapacity);
         // size_t useLRU();
         // size_t useLFU();
 
-        // // expiration
-        // size_t expire(const std::string& key, const std::chrono::seconds& sec);
+        // expiration
+        size_t expire(const size_t storeId, const std::string& key, const std::chrono::seconds& sec);
         // size_t persist(const std::string& key);
 
         // strings
-        std::string set(const size_t userId, const std::string& key, const std::string& val);
-        std::optional<std::string> get(const size_t userId, const std::string& key);
+        std::string set(const size_t storeId, const std::string& key, const std::string& val);
+        std::optional<std::string> get(const size_t storeId, const std::string& key);
         // size_t del(const std::string& key);
 
         // // lists
@@ -53,7 +52,7 @@ class KeyValueStore {
         DatabaseManager dbManager;
 
         // helpers
-        bool isExpired(const std::string& key);
+        bool isExpired(const size_t storeId, const std::string& key, const std::string& type);
 };
 
 class TypeMismatchError : public std::runtime_error {
