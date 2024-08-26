@@ -6,13 +6,18 @@ class KeyValueStoreTest : public ::testing::Test {
     protected:
         void SetUp() override {
             store = new KeyValueStore();
+            conn = new pqxx::connection(CONNECTION_STRING);
         }
 
         void TearDown() override {
             delete store;
+            pqxx::work txn(*conn);
+            txn.exec("TRUNCATE strings;");
+            txn.commit();
         }
 
         KeyValueStore* store;
+        pqxx::connection* conn;
 };
 
 TEST_F(KeyValueStoreTest, SetAndGet) {

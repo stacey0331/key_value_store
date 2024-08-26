@@ -11,6 +11,7 @@
 #include "lfu.h"
 #include "database_manager.h"
 
+const std::string CONNECTION_STRING = "dbname=key_value_store user=staceylee password=Stacey2002* hostaddr=127.0.0.1 port=5432";
 class KeyValueStore {
     public:
         KeyValueStore();

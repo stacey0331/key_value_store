@@ -5,7 +5,7 @@ TypeMismatchError::TypeMismatchError(const std::string& key, const std::string& 
     : std::runtime_error("The value at key " + key + " is not a " + type + ".") {}
 
 KeyValueStore::KeyValueStore()
-    : dbManager(DatabaseManager("dbname=key_value_store user=staceylee password=Stacey2002* hostaddr=127.0.0.1 port=5432")) {
+    : dbManager(DatabaseManager(CONNECTION_STRING)) {
     dbManager.connect();
 }
 
