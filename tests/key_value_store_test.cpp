@@ -20,11 +20,11 @@ TEST_F(KeyValueStoreTest, SetAndGet) {
     EXPECT_EQ(store->get(1, "test_key"), "test_value");
 }
 
-// TEST_F(KeyValueStoreTest, SetDelGet) {
-//     store->set("test_key", "test_value");
-//     store->del("test_key");
-//     EXPECT_FALSE(store->get("test_key").has_value());
-// }
+TEST_F(KeyValueStoreTest, SetDelGet) {
+    store->set(1, "test_key2", "test_value2");
+    store->del(1, "test_key2");
+    EXPECT_FALSE(store->get(1, "test_key2").has_value());
+}
 
 // TEST_F(KeyValueStoreTest, LeftPushTwiceLen) {
 //     store->lPush("test_list", "item1");

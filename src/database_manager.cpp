@@ -21,19 +21,10 @@ void DatabaseManager::disconnect() {
     }
 }
 
-// delete from both store and eviction cache
 void DatabaseManager::deleteKey(const size_t storeId, const std::string& key) {
-    pqxx::work txn(*conn);
-    std::string sql_string = "DELETE FROM " + std::string(STRING_TABLE) + " WHERE store_id = $1 AND key = $2;";
-    // std::string sql_list = "DELETE FROM " + std::string(LIST_TABLE) + " WHERE store_id = $1 AND key = $2;";
-    // std::string sql_set = "DELETE FROM " + std::string(SET_TABLE) + " WHERE store_id = $1 AND key = $2;";
-    // TODO: delete from eviction
-
-    txn.exec_params(sql_string, storeId, key);
-    // txn.exec_params(sql_list, storeId, key);
-    // txn.exec_params(sql_set, storeId, key);
-
-    txn.commit();
+    deleteString(storeId, key);
+    // deleteList(storeId, key);
+    // deleteSet(storeId, key);
 }
 
 // bool DatabaseManager::exceedsCapacity(const size_t storeId) {
@@ -137,6 +128,15 @@ void DatabaseManager::insertString(const size_t storeId, const std::string& key,
                 "ON CONFLICT (store_id, key) DO UPDATE "
                 "SET value = excluded.value, "
                 "expiration = NULL;");
+    txn.commit();
+}
+
+void DatabaseManager::deleteString(const size_t storeId, const std::string& key) {
+    pqxx::work txn(*conn);
+    std::string sql_string = "DELETE FROM " + std::string(STRING_TABLE) + " WHERE store_id = $1 AND key = $2;";
+    // TODO: delete from eviction
+
+    txn.exec_params(sql_string, storeId, key);
     txn.commit();
 }
 

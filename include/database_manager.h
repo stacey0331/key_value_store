@@ -24,7 +24,9 @@ public:
 
     size_t setExpiration(const size_t storeId, const std::string& key, const std::chrono::seconds& sec);
     std::optional<std::chrono::steady_clock::time_point> getExpiration(const size_t storeId, const std::string& key, const std::string& type);
+    
     void insertString(const size_t storeId, const std::string& key, const std::string& value);
+    void deleteString(const size_t storeId, const std::string& key);
     std::optional<std::string> fetchString(const size_t storeId, const std::string& key);
 
 private:

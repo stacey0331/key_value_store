@@ -5,9 +5,7 @@ TypeMismatchError::TypeMismatchError(const std::string& key, const std::string& 
     : std::runtime_error("The value at key " + key + " is not a " + type + ".") {}
 
 KeyValueStore::KeyValueStore()
-    : capacity(100), 
-      evictionPolicy(std::make_unique<LRU>()),
-      dbManager(DatabaseManager("dbname=key_value_store user=staceylee password=Stacey2002* hostaddr=127.0.0.1 port=5432")) {
+    : dbManager(DatabaseManager("dbname=key_value_store user=staceylee password=Stacey2002* hostaddr=127.0.0.1 port=5432")) {
     dbManager.connect();
 }
 
@@ -163,23 +161,18 @@ std::optional<std::string> KeyValueStore::get(const size_t storeId, const std::s
     return dbManager.fetchString(storeId, key);
 }
 
-// /* 
-//     DEL key [key ...]
+/* 
+    DEL key [key ...]
 
-//     Removes the specified keys. A key is ignored if it does not exist. 
-//     Delete key for any type of value. 
+    Removes the specified keys. A key is ignored if it does not exist. 
+    Delete key for any type of value. 
     
-//     Integer reply: the number of keys that were removed.
-// */
-// size_t KeyValueStore::del(const std::string& key) {
-//     auto it = store.find(key);
-
-//     if (it != store.end()) {
-//         evictionPolicy->keyRemoved(key);
-//     }
-//     expiration.erase(key);
-//     return store.erase(key);
-// }
+    Integer reply: the number of keys that were removed.
+*/
+size_t KeyValueStore::del(const size_t storeId, const std::string& key) {
+    dbManager.deleteString(storeId, key);
+    return 1;
+}
 
 // /*
 //     LPUSH key element [element ...]

@@ -26,7 +26,7 @@ class KeyValueStore {
         // strings
         std::string set(const size_t storeId, const std::string& key, const std::string& val);
         std::optional<std::string> get(const size_t storeId, const std::string& key);
-        // size_t del(const std::string& key);
+        size_t del(const size_t storeId, const std::string& key);
 
         // // lists
         // size_t lPush(const std::string& key, const std::string& val);
@@ -45,9 +45,9 @@ class KeyValueStore {
 
     private:
         // std::unordered_map<std::string, Value> store;
-        std::unordered_map<std::string, std::chrono::time_point<std::chrono::steady_clock>> expiration;
-        size_t capacity;
-        std::unique_ptr<EvictionPolicy> evictionPolicy;
+        // std::unordered_map<std::string, std::chrono::time_point<std::chrono::steady_clock>> expiration;
+        // size_t capacity;
+        // std::unique_ptr<EvictionPolicy> evictionPolicy;
 
         DatabaseManager dbManager;
 
