@@ -168,6 +168,21 @@ TEST_F(KeyValueStoreTest, StringExpireUpdate) {
 //     EXPECT_EQ(store->sCard("test_set1"), 1);
 // }
 
+TEST_F(KeyValueStoreTest, ChangeEvictionClearStore) {
+    store->useLRU(1);
+    store->set(1, "test_key", "test_value");
+    EXPECT_TRUE(store->get(1, "test_key").has_value());
+    store->useLFU(1);
+    EXPECT_FALSE(store->get(1, "test_key").has_value());
+    // store->setCapacity(3);
+    // store->lPush("test_list1", "item1");
+    // store->set("test_key1", "item1");
+    // store->lLen("test_list1");
+    // store->get("test_key1");
+    // store->set("test_key2", "item2");
+    // store->sAdd("test_set1", "item1");
+    // EXPECT_FALSE(store->get("test_key2").has_value());
+}
 
 TEST_F(KeyValueStoreTest, SetCapacityChangeEviction) {
     EXPECT_EQ(store->useLRU(1), 0);
