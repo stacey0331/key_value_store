@@ -19,6 +19,8 @@ build.sh:
 fastapi dev app/main.py
 ```
 
+
+BELOW IS MY SCRATCH PAPER DURING DEVELOPMENT
 CREATE TABLE strings (
     id SERIAL PRIMARY KEY,
     store_id INT NOT NULL,
@@ -43,3 +45,6 @@ Tables:
 - lists
 - eviction
 store_id, policy, capacity, cache
+
+
+psql -h 127.0.0.1 -p 5432 -U staceylee -d key_value_store

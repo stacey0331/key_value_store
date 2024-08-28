@@ -18,7 +18,9 @@ public:
     void connect();
     void disconnect();
     void deleteKey(const size_t storeId, const std::string& key);
+    void clearStore(const size_t storeId);
 
+    size_t changePolicy(const size_t storeId, const std::string& policy);
     // bool exceedsCapacity(const size_t storeId);
     // std::string evict(const size_t storeId);
 

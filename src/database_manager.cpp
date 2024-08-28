@@ -27,6 +27,41 @@ void DatabaseManager::deleteKey(const size_t storeId, const std::string& key) {
     // deleteSet(storeId, key);
 }
 
+void DatabaseManager::clearStore(const size_t storeId) {
+    pqxx::work txn(*conn);
+    std::string sqlString = "DELETE FROM " + std::string(STRING_TABLE) + " WHERE store_id = $1";
+    // std::string sqlList = "DELETE FROM " + std::string(LIST_TABLE) + " WHERE store_id = $1";
+    // std::string sqlSet = "DELETE FROM " + std::string(SET_TABLE) + " WHERE store_id = $1";
+
+    txn.exec_params(sqlString, storeId);
+    // txn.exec_params(sqlList, storeId);
+    // txn.exec_params(sqlSet, storeId);
+    txn.commit();
+}
+
+size_t DatabaseManager::changePolicy(const size_t storeId, const std::string& policy) {
+    std::string newPolicy = policy;
+    std::transform(newPolicy.begin(), newPolicy.end(), newPolicy.begin(), ::tolower);
+    if (newPolicy != "lfu" && newPolicy != "lru") {
+        throw std::runtime_error("change to nonexist policy.");
+    }
+    
+    pqxx::work txn(*conn);
+    std::string sql = "SELECT policy FROM eviction WHERE store_id = $1";
+    pqxx::result res = txn.exec_params(sql, storeId);
+    
+    auto oldPolicy = res[0][0].as<std::string>();
+
+    if (oldPolicy == policy) return 0;
+
+    std::string updateSql = "UPDATE eviction SET policy = $1 WHERE store_id = $2";
+    txn.exec_params(updateSql, newPolicy, storeId);
+    txn.commit();
+
+    clearStore(storeId); // only clear store if new policy is different from current policy
+    return 1;
+}   
+
 // bool DatabaseManager::exceedsCapacity(const size_t storeId) {
 //     pqxx::work txn(*conn);
 //     pqxx::result capacity_res = txn.exec_params(
@@ -88,11 +123,11 @@ void DatabaseManager::deleteKey(const size_t storeId, const std::string& key) {
 size_t DatabaseManager::setExpiration(const size_t storeId, const std::string& key, const std::chrono::seconds& sec) {
     pqxx::work txn(*conn);
     
-    auto expiration_time = std::chrono::steady_clock::now() + sec;
-    auto expiration_seconds = std::chrono::duration_cast<std::chrono::seconds>(expiration_time.time_since_epoch()).count();
+    auto expirationTime = std::chrono::steady_clock::now() + sec;
+    auto expirationSeconds = std::chrono::duration_cast<std::chrono::seconds>(expirationTime.time_since_epoch()).count();
     
     std::string sql = "UPDATE strings SET expiration = $1 WHERE store_id = $2 AND key = $3";
-    pqxx::result res = txn.exec_params(sql, expiration_seconds, storeId, key);
+    pqxx::result res = txn.exec_params(sql, expirationSeconds, storeId, key);
     txn.commit();
     
     if (res.affected_rows() == 0) {
@@ -111,11 +146,11 @@ std::optional<std::chrono::steady_clock::time_point> DatabaseManager::getExpirat
         return std::nullopt;
     }
 
-    auto expiration_seconds = res[0][0].as<std::int64_t>();
-    auto expiration_duration = std::chrono::seconds(expiration_seconds);
-    auto expiration_time = std::chrono::steady_clock::time_point(expiration_duration);
+    auto expirationSeconds = res[0][0].as<std::int64_t>();
+    auto expirationDuration = std::chrono::seconds(expirationSeconds);
+    auto expirationTime = std::chrono::steady_clock::time_point(expirationDuration);
 
-    return expiration_time;
+    return expirationTime;
 }
 
 // will clear expiration on update

@@ -7,13 +7,23 @@ class KeyValueStoreTest : public ::testing::Test {
         void SetUp() override {
             store = new KeyValueStore();
             conn = new pqxx::connection(CONNECTION_STRING);
+
+            pqxx::work txn(*conn);
+            txn.exec("INSERT INTO eviction (store_id, policy, capacity) VALUES (1, 'lru', 1000);");
+            txn.commit();
         }
 
         void TearDown() override {
             delete store;
+            store = nullptr;
+
             pqxx::work txn(*conn);
-            txn.exec("TRUNCATE strings;");
+            txn.exec("TRUNCATE " + std::string(STRING_TABLE) + " CASCADE;");
+            txn.exec("TRUNCATE " + std::string(EVICTION_TABLE) + " CASCADE;");
             txn.commit();
+
+            delete conn;
+            conn = nullptr;
         }
 
         KeyValueStore* store;
@@ -111,14 +121,14 @@ TEST_F(KeyValueStoreTest, StringExpireBasic) {
 //     EXPECT_TRUE(store->get("test_key1").has_value());
 // }
 
-// TEST_F(KeyValueStoreTest, StringExpireUpdate) {
-//     store->set("test_key1", "item1");
-//     store->expire("test_key1", std::chrono::seconds(2));
-//     std::this_thread::sleep_for(std::chrono::seconds(1));
-//     store->set("test_key1", "item2");
-//     std::this_thread::sleep_for(std::chrono::seconds(1));
-//     EXPECT_TRUE(store->get("test_key1").has_value());
-// }
+TEST_F(KeyValueStoreTest, StringExpireUpdate) {
+    store->set(1, "test_key1", "item1");
+    store->expire(1, "test_key1", std::chrono::seconds(2));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    store->set(1, "test_key1", "item2");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_TRUE(store->get(1, "test_key1").has_value());
+}
 
 // TEST_F(KeyValueStoreTest, ListExpireUpdate) {
 //     store->lPush("test_list1", "item1");
@@ -157,6 +167,20 @@ TEST_F(KeyValueStoreTest, StringExpireBasic) {
 //     EXPECT_TRUE(store->get("test_key2").has_value());
 //     EXPECT_EQ(store->sCard("test_set1"), 1);
 // }
+
+
+TEST_F(KeyValueStoreTest, SetCapacityChangeEviction) {
+    EXPECT_EQ(store->useLRU(1), 0);
+    EXPECT_EQ(store->useLFU(1), 1);
+    // store->setCapacity(3);
+    // store->lPush("test_list1", "item1");
+    // store->set("test_key1", "item1");
+    // store->lLen("test_list1");
+    // store->get("test_key1");
+    // store->set("test_key2", "item2");
+    // store->sAdd("test_set1", "item1");
+    // EXPECT_FALSE(store->get("test_key2").has_value());
+}
 
 // TEST_F(KeyValueStoreTest, SetCapacityChangeEviction) {
 //     EXPECT_EQ(store->useLRU(), 0);
