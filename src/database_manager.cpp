@@ -77,24 +77,24 @@ size_t DatabaseManager::changePolicy(const size_t storeId, const std::string& po
 //     pqxx::result strings_count_res = txn.exec_params(
 //         "SELECT COUNT(*) FROM strings WHERE store_id = $1", storeId
 //     );
-//     pqxx::result sets_count_res = txn.exec_params(
-//         "SELECT COUNT(*) FROM sets WHERE store_id = $1", storeId
-//     );
-//     pqxx::result lists_count_res = txn.exec_params(
-//         "SELECT COUNT(*) FROM lists WHERE store_id = $1", storeId
-//     );
+//     // pqxx::result sets_count_res = txn.exec_params(
+//     //     "SELECT COUNT(*) FROM sets WHERE store_id = $1", storeId
+//     // );
+//     // pqxx::result lists_count_res = txn.exec_params(
+//     //     "SELECT COUNT(*) FROM lists WHERE store_id = $1", storeId
+//     // );
     
-//     int total_count = strings_count_res[0][0].as<int>() +
-//                       sets_count_res[0][0].as<int>() +
-//                       lists_count_res[0][0].as<int>();
+//     int total_count = strings_count_res[0][0].as<int>();
+//     // +sets_count_res[0][0].as<int>() +
+//     //                   lists_count_res[0][0].as<int>();
     
 //     return total_count > capacity;
 // }
 
-// std::string DatabaseManager::evict(const size_t storeId) {
+// std::string DatabaseManager::evictLRU(const size_t storeId) {
 //     pqxx::work txn(*conn);
 //     pqxx::result res = txn.exec_params(
-//         "SELECT cache FROM " + EVICTION_TABLE + " WHERE store_id = $1", storeId
+//         "SELECT cache FROM " + std::string(EVICTION_TABLE) + " WHERE store_id = $1", storeId
 //     );
 
 //     if (res.empty()) {
@@ -112,7 +112,7 @@ size_t DatabaseManager::changePolicy(const size_t storeId, const std::string& po
 //     cache.pop_back();
 //     std::string updated_cache_json = cache.dump();
 //     txn.exec_params(
-//         "UPDATE cache_data SET cache = $1 WHERE store_id = $2",
+//         "UPDATE " + std::string(EVICTION_TABLE) + " SET cache = $1 WHERE store_id = $2",
 //         updated_cache_json, storeId
 //     );
 //     txn.commit();

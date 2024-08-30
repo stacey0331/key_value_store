@@ -34,7 +34,8 @@ CREATE TABLE eviction (
     store_id INT PRIMARY KEY,          -- Unique identifier for the store
     policy VARCHAR(10) NOT NULL,       -- Policy can be 'lru' or 'lfu'
     capacity INT DEFAULT 1000,         -- Default capacity is 1000
-    cache TEXT[],                      -- Array to store cache keys in order (use TEXT or VARCHAR based on requirements)
+    cache JSONB,                      -- Array to store cache keys in order (use TEXT or VARCHAR based on requirements)
+    freq JSONB,
 
     CHECK (policy IN ('lru', 'lfu'))   -- Constraint to ensure policy is either 'lru' or 'lfu'
 );

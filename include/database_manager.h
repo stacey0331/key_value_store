@@ -22,7 +22,8 @@ public:
 
     size_t changePolicy(const size_t storeId, const std::string& policy);
     // bool exceedsCapacity(const size_t storeId);
-    // std::string evict(const size_t storeId);
+    // std::string evictLRU(const size_t storeId);
+    
 
     size_t setExpiration(const size_t storeId, const std::string& key, const std::chrono::seconds& sec);
     std::optional<std::chrono::steady_clock::time_point> getExpiration(const size_t storeId, const std::string& key, const std::string& type);
