@@ -1,0 +1,28 @@
+# Use the base image
+FROM ubuntu:22.04
+
+# Install build tools and dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    cmake \
+    g++ \
+    pkg-config \
+    libpqxx-dev \
+    libgtest-dev && \
+    cd /usr/src/googletest && \
+    cmake . && \
+    make && \
+    find . -name '*.a' -exec cp {} /usr/lib/ \;  # Copy all .a files to /usr/lib
+
+# Set the working directory
+WORKDIR /key_value_store
+
+# Copy project files into the container
+COPY . /key_value_store
+
+# Build the C++ project
+RUN cmake -S . -B build -DBUILD_PYBIND=OFF -DBUILD_TESTS=ON && \
+    cmake --build build && cd /key_value_store/build 
+    
+# Command to run tests
+ENTRYPOINT ["ctest", "--output-on-failure", "--build-config", "Release", "--test-dir", "tests"]

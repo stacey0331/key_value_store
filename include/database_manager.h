@@ -4,6 +4,8 @@
 #include <pqxx/pqxx>
 #include <string>
 #include <iostream>
+#include <chrono>
+#include <optional>
 
 constexpr std::string_view STRING_TABLE = "strings";
 constexpr std::string_view LIST_TABLE = "lists";

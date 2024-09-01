@@ -1,0 +1,30 @@
+# Use a base image with C++ and Python
+FROM ubuntu:22.04
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    python3 \
+    python3-pip \
+    python3-dev \
+    pkg-config \
+    libpq-dev \
+    libpqxx-dev \
+    libgtest-dev \
+    && apt-get clean
+
+# Install Pybind11 and FastAPI
+RUN pip3 install --no-cache-dir pybind11 fastapi uvicorn
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the entire project
+COPY . .
+
+# Build the C++ project
+RUN cmake . && make
+
+# Command for development with live-reloading
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
